@@ -1,9 +1,14 @@
-import React, { useRef } from 'react'
+import React, { useContext, useRef } from 'react'
 import { User } from '../types/Types';
 import { v4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../providers/UserProvider';
+import { SnackbarContext } from '../providers/SnakeBarProvider';
 
-const AddNewUser = ({ addUser, changePageHeader }: { addUser: (newUser: User) => void, changePageHeader: (title: string, subtitle: string) => void }) => {
+const AddNewUser = () => {
+    const { users, setusers } = useContext(UserContext);
+    const { message, isOpen, showSnackbar, hideSnackbar } = useContext(SnackbarContext)!
+
     const nameRef = useRef<HTMLInputElement>(null);
     const emailRef = useRef<HTMLInputElement>(null);
     const ageRef = useRef<HTMLInputElement>(null);
@@ -13,7 +18,9 @@ const AddNewUser = ({ addUser, changePageHeader }: { addUser: (newUser: User) =>
     const navigate = useNavigate();
 
     const submitHeandler = (e: React.FormEvent<HTMLFormElement>) => {
+        
         e.preventDefault();
+
         const newUser: User = {
             id: v4(),
             username: nameRef.current!.value,
@@ -24,15 +31,15 @@ const AddNewUser = ({ addUser, changePageHeader }: { addUser: (newUser: User) =>
             isLogged: false
         }
 
-        addUser(newUser);
-        nameRef.current!.value = '';
-        emailRef.current!.value = '';
-        ageRef.current!.value = '';
-        imgRef.current!.value = '';
-        passwordRef.current!.value = '';
+        setusers([...users, newUser]);
 
-        changePageHeader('Users', 'List of users');
-        navigate('/users');
+        showSnackbar('User added successfully!!');
+
+        setTimeout(() => {
+            hideSnackbar();
+            navigate('/users');
+        }, 2000);
+
 
     }
     return (
@@ -50,9 +57,15 @@ const AddNewUser = ({ addUser, changePageHeader }: { addUser: (newUser: User) =>
                 <input type="text" id="password" ref={passwordRef} />
                 <button type="submit">Add User</button>
             </form>
-            <button onClick={() => { changePageHeader('Users', 'List of users'), navigate('/users') }}>Cancel</button>
+            <button onClick={() => { navigate('/') }}>Cancel</button>
+    
+            {isOpen && (
+                <div className="snackbar">
+                    {message}
+                </div>
+            )}
         </>
-    )
-}
+    );}
+    
 
 export default AddNewUser

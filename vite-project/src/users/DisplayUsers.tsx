@@ -1,47 +1,70 @@
+
 import { useNavigate } from 'react-router-dom';
-import { User } from '../types/Types'
+import { StarsContext } from '../providers/StarsProvider';
+import { UserContext } from '../providers/UserProvider';
+import { useContext } from 'react';
+import { SnackbarContext } from '../providers/SnakeBarProvider';
+import PageHeader from '../components/PageHeader';
 
-const DisplayUsers = ({ users, deleteUser, getUserIdToUpdate, addToStars, changePageHeader }: { users: User[], deleteUser: (id: string) => void, getUserIdToUpdate: (id: string) => void, addToStars: (id: string) => void, changePageHeader: (title: string, subtitle: string) => void }) => {
-    const Navigate = useNavigate();
 
+const DisplayUsers = () => {
+
+    const { message, isOpen, showSnackbar, hideSnackbar } = useContext(SnackbarContext)!
+
+    const navigate = useNavigate();
+
+    const { users, setusers } = useContext(UserContext);
+    const { stars, setstars } = useContext(StarsContext);
 
     const deleteHeandler = (id: string) => {
-        deleteUser(id);
-    }
+        setusers(users.filter(user => user.id !== id))
+        showSnackbar('User deleted successfully!!');
 
-    const getUserIdToUpdateHeandler = (id: string) => {
-        getUserIdToUpdate(id!);
-        changePageHeader('Edit user', 'here you can edit user');
-        Navigate(`/edituser/${id}`);
+        setTimeout(() => {
+            hideSnackbar();
+            navigate('/users');
+        }, 2000);
     }
 
     const addUserToStarsHeandler = (id: string) => {
-        addToStars(id!);
+        const userStar = users.find(user => user.id === id)!
+        if (stars.includes(userStar)) return
+        setstars([...stars, userStar])
+        showSnackbar('User added to favorites successfully!!');
+
+        setTimeout(() => {
+            hideSnackbar();
+            navigate('/stars');
+        }, 2000);
     }
 
     return (
         <>
+            <PageHeader title="Users" subtitle="here you can manage your users" />
+
             <div className="card-list">
 
                 {users.map((user) => (
                     <div key={user.id} className="user-card">
-                        <img
-                            src={user.img}
-                            alt={`${user.username}'s avatar`}
-                            className="user-avatar"
-                        />
+                        <img src={user.img} alt={`${user.username}'s avatar`} className="user-avatar" />
                         <div className="user-info">
                             <h3>{user.username}</h3>
                             <p>Email: {user.email}</p>
                             <p>Age: {user.age}</p>
-
                         </div>
+
                         <button onClick={() => { deleteHeandler(user.id!) }}>Delete</button>
-                        <button onClick={() => { getUserIdToUpdateHeandler(user.id!) }}>Edit</button>
+                        <button onClick={() => { navigate(`/edit/${user.id}`) }}>Edit</button>
                         <button onClick={() => { addUserToStarsHeandler(user.id!) }}>Add to favorites</button>
                     </div>
                 ))}
             </div>
+
+            {isOpen && (
+                <div className="snackbar">
+                    {message}
+                </div>
+            )}
         </>
     )
 }

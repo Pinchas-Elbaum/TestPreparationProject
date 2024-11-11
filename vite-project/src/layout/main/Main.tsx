@@ -2,7 +2,8 @@ import  { ReactNode } from 'react'
 
 const Main = ({ children }: { children: ReactNode}) => {
   return (
-    <div>
+    <div className="main-container">
+      
       {children}
     </div>
   )
